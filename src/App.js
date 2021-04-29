@@ -1,56 +1,50 @@
 import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
+import { useDispatch, useSelector } from 'react-redux';
 import './App.css';
+import { setActiveUser, setInactiveUser } from './features/userSlice';
+import { auth, provider } from './firebase';
 
 function App() {
+  const dispatch = useDispatch();
+  const name = useSelector((state) => state.user.name);
+  const email = useSelector((state) => state.user.email);
+
+  const handleSignOut = (e) => {
+    auth
+      .signOut()
+      .then(() => {
+        dispatch(setInactiveUser);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const handleSignIn = (e) => {
+    auth.signInWithPopup(provider).then((result) => {
+      console.log(result);
+      dispatch(
+        setActiveUser({
+          name: result.user.displayName,
+          email: result.user.email,
+        })
+      );
+      console.log(name);
+    });
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <span>
-          <span>Learn </span>
-          <a
-            className="App-link"
-            href="https://reactjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
-          ,<span> and </span>
-          <a
-            className="App-link"
-            href="https://react-redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React Redux
-          </a>
-        </span>
-      </header>
+    <div className='App'>
+      {name ? (
+        <>
+          <p>
+            {name} and {email}
+          </p>
+          <button onClick={handleSignOut}>Sign out</button>
+        </>
+      ) : (
+        <button onClick={handleSignIn}>Sign in</button>
+      )}
     </div>
   );
 }
